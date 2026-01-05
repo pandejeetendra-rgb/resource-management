@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>GBL — Resource Management Lite (System Health)</title>
+  <title>GBL — Resource Management Lite (Survival Mode)</title>
   <style>
     :root{
       --bg1:#070b16; --bg2:#082a3a;
@@ -73,7 +73,6 @@
     .danger{border-color:rgba(255,90,122,.35);background:linear-gradient(180deg, rgba(255,90,122,.18), rgba(255,255,255,.05))}
     .soft{border-color:rgba(255,209,102,.25);background:linear-gradient(180deg, rgba(255,209,102,.14), rgba(255,255,255,.04))}
 
-    /* Top HUD */
     .hud{
       padding:12px 14px 10px;
       border-bottom:1px solid var(--line);
@@ -92,7 +91,6 @@
       width:100%;
       border-radius:999px;
       background: linear-gradient(90deg, rgba(46,229,157,.95), rgba(255,209,102,.95), rgba(255,90,122,.95));
-      filter:saturate(1.05);
       transform-origin:left;
       transform:scaleX(1);
       transition: transform 420ms ease;
@@ -102,16 +100,6 @@
     @keyframes pulseGood{from{filter:brightness(1)}to{filter:brightness(1.2)}}
     @keyframes pulseBad{from{filter:brightness(1)}to{filter:brightness(.85)}}
 
-    .progressDots{display:flex;gap:6px;align-items:center}
-    .dot{
-      width:10px;height:10px;border-radius:50%;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.05);
-    }
-    .dot.on{background:rgba(91,214,255,.45);border-color:rgba(91,214,255,.55)}
-    .dot.done{background:rgba(46,229,157,.45);border-color:rgba(46,229,157,.55)}
-
-    /* Question */
     .qMeta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
     .qText{
       font-size:clamp(18px,2.6vw,24px);
@@ -130,7 +118,6 @@
     .choice:hover{background:rgba(255,255,255,.09)}
     .choice:disabled{cursor:not-allowed;opacity:.9}
 
-    /* Feedback strip */
     .feedback{
       margin-top:12px;
       padding:12px;
@@ -152,7 +139,6 @@
     .tag.bad{background:rgba(255,90,122,.14);border-color:rgba(255,90,122,.30)}
     .ftext{color:var(--muted);font-size:13px;line-height:1.35}
 
-    /* Repair token */
     .tools{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:10px}
     .toolBtn{
       display:flex;gap:10px;align-items:center;justify-content:center;
@@ -160,13 +146,13 @@
     }
     .toolBtn small{color:var(--muted);font-weight:800}
     .toolBtn.used{opacity:.55}
+
     .hint{
       color:var(--muted);font-size:13px;line-height:1.35;
       padding:12px;border-radius:16px;border:1px solid var(--line);
       background:rgba(0,0,0,.14)
     }
 
-    /* Overlays */
     .overlay{
       position:fixed;inset:0;display:none;align-items:center;justify-content:center;
       padding:14px;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);z-index:50;
@@ -187,11 +173,9 @@
     .mbody{padding:14px}
     .mrow{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
 
-    /* Transitions */
     .screen{display:none}
     .screen.show{display:block}
 
-    /* Tiny screen shake on wrong */
     .shake{animation:shake .24s ease}
     @keyframes shake{
       0%{transform:translateX(0)}
@@ -201,7 +185,6 @@
       100%{transform:translateX(0)}
     }
 
-    /* Toast */
     .toast{
       position:fixed;left:50%;bottom:16px;transform:translateX(-50%);
       display:none;z-index:60;max-width:min(720px,92vw);
@@ -213,35 +196,32 @@
     .toast.show{display:block;animation:pop .18s ease}
     @keyframes pop{from{transform:translateX(-50%) translateY(10px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
 
-    /* Settings */
     .settingsRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
     input[type="range"]{width:100%}
     .mini{color:var(--muted);font-size:12px}
     .sp{height:10px}
-
-    .sr{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
 
-      <!-- SCREEN 0: INTRO -->
+      <!-- INTRO -->
       <div class="screen" id="screenIntro">
         <div class="head">
           <div>
             <div class="ttl">System Security Challenge</div>
-            <div class="sub">Keep <b>System Health</b> above zero until you finish. One repair token is available.</div>
+            <div class="sub">Survival mode: keep answering until your <b>System Health</b> reaches zero.</div>
           </div>
           <div class="badge">Session: <b id="sessId">UOU</b></div>
         </div>
         <div class="body">
           <div class="hint">
-            <b>How it works</b><br/>
-            • Correct answer: <b>+5</b> Health (max 100)<br/>
-            • Wrong answer: <b>−10</b> Health<br/>
-            • You have <b>ONE Repair Token</b>: restores <b>+20</b> once<br/>
-            • No skipping, no retries for the same question<br/>
+            <b>Rules</b><br/>
+            • Correct: <b>+5</b> Health (max 100)<br/>
+            • Wrong: <b>−10</b> Health<br/>
+            • One Repair Token: <b>+20</b> once<br/>
+            • Questions continue until Health becomes <b>0</b><br/>
           </div>
 
           <div class="sp"></div>
@@ -264,15 +244,14 @@
           <div class="sp"></div>
 
           <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">
-            <button id="btnNew" class="soft">New Set</button>
+            <button id="btnNew" class="soft">New Shuffle</button>
             <button id="btnStart" class="primary">Start</button>
           </div>
         </div>
       </div>
 
-      <!-- SCREEN 1/2: GAMEPLAY -->
+      <!-- GAME -->
       <div class="screen" id="screenGame">
-        <!-- HUD -->
         <div class="hud">
           <div class="hudrow">
             <div class="healthWrap">
@@ -280,17 +259,12 @@
                 <span>System Health</span>
                 <span><b id="healthPct">100%</b></span>
               </div>
-              <div class="bar" aria-label="System Health">
+              <div class="bar">
                 <div class="fill" id="healthFill"></div>
               </div>
             </div>
-
-            <div class="progressDots" aria-label="Progress">
-              <span class="sr">Progress dots</span>
-              <div id="dots"></div>
-            </div>
-
-            <div class="badge">Q <b id="qIndex">1</b> / <b id="qTotal">10</b></div>
+            <div class="badge">Attempt <b id="attemptNo">1</b></div>
+            <div class="badge">Correct <b id="correctNo">0</b></div>
           </div>
         </div>
 
@@ -318,23 +292,23 @@
           </div>
 
           <div class="hint" style="margin-top:12px">
-            Tip: Use Repair Token only when you really need it. Your goal is to finish all questions with Health &gt; 0.
+            Tip: In survival mode, play for longevity. Read the feedback before the next question appears.
           </div>
         </div>
       </div>
 
-      <!-- SCREEN 5A/5B: END -->
+      <!-- END -->
       <div class="screen" id="screenEnd">
         <div class="head">
           <div>
-            <div class="ttl" id="endTitle">System Secured</div>
-            <div class="sub" id="endSub">Well done.</div>
+            <div class="ttl" id="endTitle">System Compromised ⚠️</div>
+            <div class="sub" id="endSub">Health reached zero. Try again.</div>
           </div>
           <div class="badge">Final Health: <b id="endHealth">0%</b></div>
         </div>
         <div class="body">
           <div class="hint" id="endStats">
-            Attempted: —<br/>Correct: —<br/>Completed: —
+            Attempted: —<br/>Correct: —<br/>Longest streak: —
           </div>
 
           <div class="sp"></div>
@@ -349,20 +323,18 @@
     </div>
   </div>
 
-  <!-- Repair Confirmation -->
-  <div class="overlay" id="repairModal" role="dialog" aria-modal="true" aria-label="Repair confirmation">
+  <!-- Repair Modal -->
+  <div class="overlay" id="repairModal" role="dialog" aria-modal="true">
     <div class="modal">
       <div class="mhead">
         <div>
           <div class="mttl">Use Repair Token?</div>
-          <div class="sub" style="margin-top:4px">Restores <b>+20</b> System Health. Can be used <b>only once</b>.</div>
+          <div class="sub" style="margin-top:4px">Restores <b>+20</b> Health. Can be used only once.</div>
         </div>
         <div class="badge">Now: <b id="repairNow">—</b></div>
       </div>
       <div class="mbody">
-        <div class="hint">
-          Recommended: use it when Health is low (for example below 30–40%).
-        </div>
+        <div class="hint">Recommended when Health is low (below ~40%).</div>
         <div class="mrow">
           <button id="btnRepairCancel">Cancel</button>
           <button id="btnRepairYes" class="primary">Yes, Use</button>
@@ -371,30 +343,15 @@
     </div>
   </div>
 
-  <!-- Toast -->
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="toast" id="toast"></div>
 
   <script>
-    // ============================================================
-    // Resource Management Lite (RML) — Mobile-first single screen
-    // Core rules:
-    //  - Start Health 100
-    //  - Correct +5 (cap 100)
-    //  - Wrong -10
-    //  - One Repair Token +20 (once)
-    //  - No skipping, no retries for same question
-    //  - Feedback displayed for delayMs, then auto-advance
-    // ============================================================
-
     const params = new URLSearchParams(location.search);
     const pid = (params.get("pid") || "UOU").trim();
     document.getElementById("sessId").textContent = pid;
+    const STORE_KEY = "UOU_RML_SURVIVAL_" + pid;
 
-    const STORE_KEY = "UOU_RML_" + pid;
-
-    // NOTE: These questions are written from the same themes as your two PDFs
-    // (Windows Security + User Account Security). If you want, I can replace this
-    // bank with an extracted/expanded set from your PDFs in the next iteration.
+    // Replace/expand this bank later with your chapter-based MCQs
     const QUESTION_BANK = [
       {id:"Q1", q:"Which option during Windows setup helps you control privacy settings instead of accepting defaults?", c:["Express settings","Customise settings","Skip sign-in","Enable all sharing"], a:1, ex:"Customise settings lets you review and limit data-sharing options."},
       {id:"Q2", q:"Which feature helps protect users from malicious websites and downloads in Windows?", c:["Night Light","SmartScreen","Task View","Clipboard history"], a:1, ex:"SmartScreen checks reputation of sites/downloads to reduce exposure to threats."},
@@ -402,74 +359,59 @@
       {id:"Q4", q:"Why should file extensions be visible in Windows Explorer for security?", c:["It increases speed","It reduces RAM use","It helps detect disguised executables like .pdf.exe","It enables encryption"], a:2, ex:"Hidden extensions can hide real file types; showing them reduces tricking risk."},
       {id:"Q5", q:"Windows Firewall should normally be turned ON for:", c:["Only public networks","Only private networks","Both private and public networks","Only during downloads"], a:2, ex:"Firewall protection is recommended for both private and public networks."},
       {id:"Q6", q:"Disabling AutoPlay is recommended mainly because it:", c:["Improves display quality","Reduces malware risk from removable media auto-launch","Stops Windows updates","Disables Bluetooth"], a:1, ex:"AutoPlay can trigger risky actions when USB/media is inserted."},
-      {id:"Q7", q:"In Windows privacy settings, turning OFF which access reduces apps using your account details?", c:["Account info access","Screen brightness","Wi-Fi driver","System restore"], a:0, ex:"Disabling account info access limits apps from reading name/picture/account details."},
-      {id:"Q8", q:"A good practice for system security is to keep Windows updated because updates:", c:["Disable antivirus","Patch known vulnerabilities","Make passwords unnecessary","Hide file extensions"], a:1, ex:"Updates commonly patch security vulnerabilities exploited by attackers."},
+      {id:"Q7", q:"Turning off which privacy permission reduces apps using your account details?", c:["Account info access","Screen brightness","Wi-Fi driver","System restore"], a:0, ex:"Disabling account info access limits apps from reading your account details."},
+      {id:"Q8", q:"Keeping Windows updated is important mainly because updates:", c:["Disable antivirus","Patch known vulnerabilities","Make passwords unnecessary","Hide file extensions"], a:1, ex:"Updates commonly patch security vulnerabilities exploited by attackers."},
       {id:"Q9", q:"What is the main benefit of full-disk encryption (e.g., BitLocker)?", c:["Faster internet","Protection if someone accesses the disk physically","Better display colors","Automatic backups"], a:1, ex:"Encryption protects data at rest if the device/drive is stolen or accessed physically."},
       {id:"Q10", q:"When setting a password hint, it should:", c:["Contain your DOB","Be easy for others to guess","Not reveal sensitive clues about the password","Be the same as the password"], a:2, ex:"A password hint should not leak information that helps guessing."},
       {id:"Q11", q:"To reduce location tracking, a privacy-friendly step is to:", c:["Keep Location ON always","Turn Location OFF and clear location history","Enable location for all apps","Share location history"], a:1, ex:"Disabling location and clearing history reduces stored location records."},
-      {id:"Q12", q:"To reduce background activity and tracking, you should:", c:["Allow all background apps","Disable unnecessary background apps","Disable firewall","Enable all telemetry"], a:1, ex:"Turning off unnecessary background apps reduces data use and background activity."},
-      {id:"Q13", q:"Which combination is a strong baseline for personal device security?", c:["No password + long timeout","Password + quick auto-lock","Guest account for everyone","Disable screen lock"], a:1, ex:"Password plus short auto-lock reduces risk when you step away."},
-      {id:"Q14", q:"Which statement best describes bloatware?", c:["Security patches","Unnecessary bundled software that may add risk or slow the system","Encrypted files","Firewall rules"], a:1, ex:"Bloatware can increase attack surface and reduce performance."},
-      {id:"Q15", q:"In Feedback & diagnostics, a more privacy-friendly choice is typically:", c:["Full diagnostics always","Basic/required diagnostics (minimum)","Share everything","Enable extra feedback prompts"], a:1, ex:"Lower diagnostic sharing reduces the amount of data sent."},
-      {id:"Q16", q:"Why is Windows frequently targeted by malware?", c:["It is never updated","It is widely used, making it a common target","It has no firewall","It blocks antivirus"], a:1, ex:"High popularity makes it a frequent target for attackers."}
+      {id:"Q12", q:"To reduce unnecessary background activity, you should:", c:["Allow all background apps","Disable unnecessary background apps","Disable firewall","Enable all telemetry"], a:1, ex:"Turning off unnecessary background apps reduces background activity."}
     ];
-
-    const DEFAULT_TOTAL = 10;
 
     const el = (id)=>document.getElementById(id);
 
-    // Screens
     const screenIntro = el("screenIntro");
-    const screenGame = el("screenGame");
-    const screenEnd  = el("screenEnd");
+    const screenGame  = el("screenGame");
+    const screenEnd   = el("screenEnd");
 
-    // Intro controls
     const delayRange = el("delayRange");
     const delayLabel = el("delayLabel");
     const btnStart = el("btnStart");
-    const btnNew = el("btnNew");
+    const btnNew   = el("btnNew");
 
-    // Game HUD
     const healthFill = el("healthFill");
-    const healthPct = el("healthPct");
-    const dotsEl = el("dots");
-    const qIndexEl = el("qIndex");
-    const qTotalEl = el("qTotal");
+    const healthPct  = el("healthPct");
+    const attemptNo  = el("attemptNo");
+    const correctNo  = el("correctNo");
 
-    // Game content
-    const qTextEl = el("qText");
-    const choicesEl = el("choices");
+    const qTextEl    = el("qText");
+    const choicesEl  = el("choices");
     const feedbackEl = el("feedback");
-    const fbTag = el("fbTag");
-    const fbText = el("fbText");
-    const repairStateEl = el("repairState");
-    const btnRepair = el("btnRepair");
-    const btnReset = el("btnReset");
-    const gameBody = el("gameBody");
+    const fbTag      = el("fbTag");
+    const fbText     = el("fbText");
 
-    // Repair modal
+    const repairStateEl = el("repairState");
+    const btnRepair  = el("btnRepair");
+    const btnReset   = el("btnReset");
+    const gameBody   = el("gameBody");
+
     const repairModal = el("repairModal");
     const repairNow = el("repairNow");
     const btnRepairCancel = el("btnRepairCancel");
     const btnRepairYes = el("btnRepairYes");
 
-    // End
-    const endTitle = el("endTitle");
-    const endSub = el("endSub");
     const endHealth = el("endHealth");
-    const endStats = el("endStats");
-    const btnAgain = el("btnAgain");
-    const btnBack = el("btnBack");
+    const endStats  = el("endStats");
+    const btnAgain  = el("btnAgain");
+    const btnBack   = el("btnBack");
 
-    // Toast
     const toast = el("toast");
 
-    // State
     let state = loadState() || freshState();
-    syncIntroControls();
-    routeToCorrectScreen();
+    syncIntro();
+    route();
+    if (state.phase === "game") renderGame();
+    if (state.phase === "end") renderEnd();
 
-    // ---------------- Events ----------------
     delayRange.addEventListener("input", ()=>{
       state.delayMs = Number(delayRange.value);
       delayLabel.textContent = delayRange.value;
@@ -481,15 +423,14 @@
       state = freshState();
       state.delayMs = keepDelay;
       saveState();
-      syncIntroControls();
-      showToast("New question set prepared.");
+      syncIntro();
+      showToast("New shuffle prepared.");
     });
 
     btnStart.addEventListener("click", ()=>{
-      if (state.phase !== "intro") return;
       state.phase = "game";
       saveState();
-      routeToCorrectScreen();
+      route();
       renderGame();
     });
 
@@ -498,14 +439,13 @@
       localStorage.removeItem(STORE_KEY);
       state = freshState();
       saveState();
-      syncIntroControls();
-      routeToCorrectScreen();
+      syncIntro();
+      route();
       showToast("Session reset.");
     });
 
     btnRepair.addEventListener("click", ()=>{
-      if (state.phase !== "game") return;
-      if (state.repairUsed) return;
+      if (state.repairUsed || state.phase !== "game") return;
       openRepairModal();
     });
 
@@ -518,10 +458,10 @@
       state.health = clamp(state.health + 20, 0, 100);
       closeRepairModal();
       saveState();
-      showToast("Repair applied (+20).");
-      animateHealthChange("good");
+      animateHealth("good");
       renderHUD();
-      renderRepairState();
+      renderRepair();
+      showToast("Repair applied (+20).");
     });
 
     btnAgain.addEventListener("click", ()=>{
@@ -530,118 +470,90 @@
       state.delayMs = keepDelay;
       state.phase = "game";
       saveState();
-      routeToCorrectScreen();
+      route();
       renderGame();
     });
 
     btnBack.addEventListener("click", ()=>{
       state.phase = "intro";
       saveState();
-      routeToCorrectScreen();
-      syncIntroControls();
+      route();
+      syncIntro();
     });
 
-    window.addEventListener("beforeunload", saveState);
-
-    // ---------------- Core functions ----------------
     function freshState(){
-      const qTotal = DEFAULT_TOTAL;
-      const picks = shuffle([...Array(QUESTION_BANK.length)].map((_,i)=>i)).slice(0, Math.min(qTotal, QUESTION_BANK.length));
+      const order = shuffle([...Array(QUESTION_BANK.length)].map((_,i)=>i));
       return {
-        version: 1,
         pid,
-        phase: "intro", // intro | game | end
-        delayMs: 1800,
-        qTotal: picks.length,
-        picked: picks,
-        cursor: 0,
-        health: 100,
-        repairUsed: false,
-        attempted: 0,
-        correct: 0,
-        // track per question status: null|true|false
-        status: Array(picks.length).fill(null)
+        phase:"intro",
+        delayMs:1800,
+        health:100,
+        repairUsed:false,
+        attempted:0,
+        correct:0,
+        bestStreak:0,
+        streak:0,
+        // queue of question indices to pull from
+        queue:order,
+        // current question index in bank
+        current:null
       };
     }
 
-    function routeToCorrectScreen(){
-      hideAllScreens();
-      if (state.phase === "intro"){
-        screenIntro.classList.add("show");
-        document.body.style.overflow = "";
-      } else if (state.phase === "game"){
-        screenGame.classList.add("show");
-        document.body.style.overflow = "";
-      } else {
-        screenEnd.classList.add("show");
-        document.body.style.overflow = "";
-      }
-    }
-
-    function hideAllScreens(){
-      screenIntro.classList.remove("show");
-      screenGame.classList.remove("show");
-      screenEnd.classList.remove("show");
-    }
-
-    function syncIntroControls(){
+    function syncIntro(){
       delayRange.value = String(state.delayMs ?? 1800);
       delayLabel.textContent = delayRange.value;
     }
 
+    function route(){
+      screenIntro.classList.remove("show");
+      screenGame.classList.remove("show");
+      screenEnd.classList.remove("show");
+      if (state.phase === "intro") screenIntro.classList.add("show");
+      if (state.phase === "game")  screenGame.classList.add("show");
+      if (state.phase === "end")   screenEnd.classList.add("show");
+    }
+
     function renderGame(){
       renderHUD();
-      renderRepairState();
-      renderQuestion();
+      renderRepair();
+      nextQuestion();
     }
 
     function renderHUD(){
-      qTotalEl.textContent = String(state.qTotal);
-      qIndexEl.textContent = String(Math.min(state.cursor + 1, state.qTotal));
-
-      // Health bar transform
       const s = clamp(state.health, 0, 100) / 100;
       healthFill.style.transform = `scaleX(${s})`;
       healthPct.textContent = `${Math.round(state.health)}%`;
-
-      // Dots
-      dotsEl.innerHTML = "";
-      for (let i=0;i<state.qTotal;i++){
-        const d = document.createElement("div");
-        d.className = "dot";
-        if (i === state.cursor) d.classList.add("on");
-        if (state.status[i] === true) d.classList.add("done");
-        dotsEl.appendChild(d);
-      }
+      attemptNo.textContent = String(state.attempted + 1); // upcoming attempt
+      correctNo.textContent = String(state.correct);
     }
 
-    function renderRepairState(){
+    function renderRepair(){
       if (state.repairUsed){
         repairStateEl.textContent = "Used";
-        btnRepair.classList.add("used");
         btnRepair.disabled = true;
+        btnRepair.classList.add("used");
       } else {
         repairStateEl.textContent = "Available";
-        btnRepair.classList.remove("used");
         btnRepair.disabled = false;
+        btnRepair.classList.remove("used");
       }
     }
 
-    function renderQuestion(){
+    function nextQuestion(){
       feedbackEl.classList.remove("show");
       fbTag.textContent = "—";
       fbTag.className = "tag";
       fbText.textContent = "—";
-
       choicesEl.innerHTML = "";
 
-      if (state.cursor >= state.qTotal){
-        // completed
-        finishGame(true);
-        return;
+      // If queue is empty, reshuffle (so game can continue indefinitely)
+      if (!state.queue || state.queue.length === 0){
+        state.queue = shuffle([...Array(QUESTION_BANK.length)].map((_,i)=>i));
       }
 
-      const q = currentQuestion();
+      state.current = state.queue.shift();
+      const q = QUESTION_BANK[state.current];
 
       qTextEl.textContent = q.q;
 
@@ -655,55 +567,61 @@
       });
 
       saveState();
+      renderHUD();
     }
 
     function answer(chosenIndex){
-      // prevent double taps
       [...choicesEl.querySelectorAll("button")].forEach(btn=>btn.disabled = true);
 
-      const q = currentQuestion();
+      const q = QUESTION_BANK[state.current];
       state.attempted += 1;
 
-      const correct = (chosenIndex === q.a);
-      state.status[state.cursor] = correct;
+      const ok = (chosenIndex === q.a);
 
-      if (correct){
+      if (ok){
         state.correct += 1;
+        state.streak += 1;
+        state.bestStreak = Math.max(state.bestStreak, state.streak);
         state.health = clamp(state.health + 5, 0, 100);
         showFeedback(true, q.ex);
-        animateHealthChange("good");
+        animateHealth("good");
       } else {
+        state.streak = 0;
         state.health = clamp(state.health - 10, 0, 100);
         const correctLabel = String.fromCharCode(65 + q.a);
         const explain = `Correct: ${correctLabel}. ${q.c[q.a]} — ${q.ex}`;
         showFeedback(false, explain);
-        animateHealthChange("bad");
+        animateHealth("bad");
         tinyShake();
       }
 
       saveState();
       renderHUD();
-      renderRepairState();
+      renderRepair();
 
-      // fail if health hits 0
       if (state.health <= 0){
-        setTimeout(()=>finishGame(false), 450);
+        setTimeout(endGame, 450);
         return;
       }
 
-      // auto advance after delay
-      const wait = Number(state.delayMs ?? 1800);
       setTimeout(()=>{
-        // Transition micro pause is implicit via the delay; keep it simple to avoid flicker
-        state.cursor += 1;
-        saveState();
-        if (state.cursor >= state.qTotal){
-          finishGame(true);
-        } else {
-          renderHUD();
-          renderQuestion();
-        }
-      }, wait);
+        nextQuestion();
+      }, Number(state.delayMs ?? 1800));
+    }
+
+    function endGame(){
+      state.phase = "end";
+      saveState();
+      route();
+      renderEnd();
+    }
+
+    function renderEnd(){
+      endHealth.textContent = `${Math.round(state.health)}%`;
+      endStats.innerHTML =
+        `Attempted: <b>${state.attempted}</b><br/>` +
+        `Correct: <b>${state.correct}</b><br/>` +
+        `Longest streak: <b>${state.bestStreak}</b>`;
     }
 
     function showFeedback(isCorrect, text){
@@ -718,32 +636,20 @@
       fbText.textContent = text;
     }
 
-    function finishGame(won){
-      state.phase = "end";
-      saveState();
-      routeToCorrectScreen();
-      renderEnd(won);
+    function animateHealth(kind){
+      healthFill.classList.remove("pulseGood","pulseBad");
+      void healthFill.offsetWidth;
+      if (kind === "good") healthFill.classList.add("pulseGood");
+      else healthFill.classList.add("pulseBad");
     }
 
-    function renderEnd(won){
-      endHealth.textContent = `${Math.round(state.health)}%`;
-
-      if (won){
-        endTitle.textContent = "System Secured ✅";
-        endSub.textContent = "You completed the security checks successfully.";
-      } else {
-        endTitle.textContent = "System Compromised ⚠️";
-        endSub.textContent = "System Health reached zero. Review and try again.";
-      }
-
-      const completed = Math.min(state.cursor, state.qTotal);
-      endStats.innerHTML =
-        `Attempted: <b>${state.attempted}</b><br/>` +
-        `Correct: <b>${state.correct}</b><br/>` +
-        `Completed: <b>${completed}</b> / <b>${state.qTotal}</b>`;
+    function tinyShake(){
+      gameBody.classList.remove("shake");
+      void gameBody.offsetWidth;
+      gameBody.classList.add("shake");
+      setTimeout(()=>gameBody.classList.remove("shake"), 260);
     }
 
-    // ---------------- Repair Modal ----------------
     function openRepairModal(){
       repairNow.textContent = `${Math.round(state.health)}%`;
       repairModal.classList.add("show");
@@ -754,40 +660,22 @@
       document.body.style.overflow = "";
     }
 
-    // ---------------- Animations ----------------
-    function animateHealthChange(kind){
-      healthFill.classList.remove("pulseGood","pulseBad");
-      void healthFill.offsetWidth; // reflow to restart animation
-      if (kind === "good") healthFill.classList.add("pulseGood");
-      if (kind === "bad")  healthFill.classList.add("pulseBad");
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(()=>toast.classList.remove("show"), 2200);
     }
 
-    function tinyShake(){
-      gameBody.classList.remove("shake");
-      void gameBody.offsetWidth;
-      gameBody.classList.add("shake");
-      setTimeout(()=>gameBody.classList.remove("shake"), 260);
-    }
-
-    // ---------------- Persistence ----------------
     function saveState(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
     function loadState(){
       try{
         const raw = localStorage.getItem(STORE_KEY);
         if (!raw) return null;
-        const s = JSON.parse(raw);
-        if (!s || typeof s !== "object") return null;
-        if (!Array.isArray(s.picked) || typeof s.health !== "number") return null;
-        return s;
+        return JSON.parse(raw);
       } catch { return null; }
     }
 
-    // ---------------- Helpers ----------------
-    function currentQuestion(){
-      const idx = state.picked[state.cursor];
-      return QUESTION_BANK[idx];
-    }
-    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+    function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
     function shuffle(arr){
       const a = arr.slice();
       for (let i=a.length-1;i>0;i--){
@@ -800,19 +688,6 @@
       return String(s).replace(/[&<>"']/g, m => ({
         "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
       }[m]));
-    }
-
-    function showToast(msg){
-      toast.textContent = msg;
-      toast.classList.add("show");
-      setTimeout(()=>toast.classList.remove("show"), 2200);
-    }
-
-    // Start at correct screen
-    if (state.phase === "game"){ renderGame(); }
-    if (state.phase === "end"){
-      // infer win/fail from health and completion
-      renderEnd(state.health > 0 && state.cursor >= state.qTotal);
     }
   </script>
 </body>
